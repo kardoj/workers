@@ -8,7 +8,7 @@ import Point from "./lib/point";
 const Width = 800;
 const Height = 600;
 const TicksPerSecond = 60;
-const CommandCenters = 0;
+const CommandCenters = 3;
 const Workers = 100;
 const Resources = 15;
 
@@ -59,6 +59,8 @@ class Game {
             if (selectedWorker !== undefined)
                 selectedWorker.select();
         });
+
+        console.log("Total resources: " + this.resources.reduce((previousValue, currentResource) => previousValue + currentResource.resources, 0));
     }
 
     update() {

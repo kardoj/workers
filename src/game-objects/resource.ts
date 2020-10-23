@@ -40,8 +40,8 @@ export default class Resource extends GameObject {
         context.fillText(String(this.resources), this.coordinates.x, this.coordinates.y);
     }
 
-    hasResources(): boolean {
-        return this.resources != 0;
+    isDepleted(): boolean {
+        return this.resources == 0;
     }
 
     take() {

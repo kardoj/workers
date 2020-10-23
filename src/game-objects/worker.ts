@@ -79,7 +79,7 @@ export default class Worker extends GameObject {
             case WorkerState.GatheringResources: {
                 const resource: Resource = <Resource>this.destination.gameObject;
 
-                if (this.carriedResources == MaxCarriedResources || !resource.hasResources())
+                if (this.carriedResources == MaxCarriedResources || resource.isDepleted())
                     this.bringResourcesToNearestCommandCenter();
 
                 break;
@@ -135,8 +135,12 @@ export default class Worker extends GameObject {
     }
 
     private locateNearestResourceAndStartGoingThere() {
-        const nearestResourceWithDistance = this.findNearestGameObjectWithDistance(this.resources.filter(r => r.hasResources()));
-        const resource: Resource = <Resource>nearestResourceWithDistance.gameObject;
+        const nearestResourceWithDistance = this.findNearestNotDepletedResourceWithDistance(this.resources);
+        const resource: Resource = nearestResourceWithDistance.resource;
+        if (resource === undefined) {
+            this.stopGaterhing();
+            return;
+        }
         this.destination = new Destination(this.coordinates, resource, nearestResourceWithDistance.distance, this.radius + resource.radius);
         this.state = WorkerState.GoingToResource;
     }
@@ -145,12 +149,12 @@ export default class Worker extends GameObject {
         this.state = WorkerState.GatheringResources;
 
         this.gatheringTimer = setInterval(() => {
-            if (this.carriedResources < MaxCarriedResources && resource.hasResources()) {
+            if (this.carriedResources < MaxCarriedResources && !resource.isDepleted()) {
                 resource.take();
                 this.pickUpResource();
             } 
             
-            if (this.carriedResources == MaxCarriedResources || !resource.hasResources()) {
+            if (this.carriedResources == MaxCarriedResources || resource.isDepleted()) {
                 clearInterval(this.gatheringTimer);
                 this.gatheringTimer = undefined;
             }
@@ -235,18 +239,23 @@ export default class Worker extends GameObject {
         return { building: nearest, distance: nearestDistance };
     }
 
-    private findNearestGameObjectWithDistance(gameObjects: GameObject[]): { gameObject: GameObject, distance: number } {
-        let nearestDistance = this.getDistance(gameObjects[0]);
-        let nearest = gameObjects[0];
+    private findNearestNotDepletedResourceWithDistance(resources: Resource[]): { resource: Resource, distance: number } {
+        const notDepletedResources = resources.filter(r => !r.isDepleted());
+        if (notDepletedResources.length === 0) {
+            return { resource: undefined, distance: undefined };
+        }
+
+        let nearestDistance = this.getDistance(notDepletedResources[0]);
+        let nearest = notDepletedResources[0];
         
-        for (let i = 1; i < gameObjects.length; i++) {
-            let distance = this.getDistance(gameObjects[i]);
+        for (let i = 1; i < notDepletedResources.length; i++) {
+            let distance = this.getDistance(notDepletedResources[i]);
             if (distance < nearestDistance) {
                 nearestDistance = distance;
-                nearest = gameObjects[i];
+                nearest = notDepletedResources[i];
             }
         }
 
-        return { gameObject: nearest, distance: nearestDistance };
+        return { resource: nearest, distance: nearestDistance };
     }
 }
