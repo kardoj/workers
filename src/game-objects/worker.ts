@@ -38,6 +38,8 @@ export default class Worker extends GameObject {
     private radius: number = Radius;
     private strokeStyle = DeselectedStrokeStyle;
 
+    private loggingTimer: number;
+
     // References to main game objects
     private resources: Resource[];
     private commandCenters: Building[];
@@ -81,7 +83,7 @@ export default class Worker extends GameObject {
                 if (!this.gatheringTimer) {
                     this.gatheringTimer = setInterval(() => {
                         if (this.carriedResources < MaxCarriedResources && resource.hasResources()) {
-                            resource.gatherResource();
+                            resource.take();
                             this.pickUpResource();
                         } 
                         
@@ -150,20 +152,37 @@ export default class Worker extends GameObject {
 
     isAt(point: Point): boolean {
         // Compare radius of circle with distance of its center from given point
-        if ((point.x - this.coordinates.x) * (point.x - this.coordinates.x) + (point.y - this.coordinates.y) * (point.y - this.coordinates.y) <= this.radius * this.radius)
-            return true; 
-        else
-            return false;
+        return ((point.x - this.coordinates.x) * (point.x - this.coordinates.x) + (point.y - this.coordinates.y) * (point.y - this.coordinates.y) <= this.radius * this.radius);
     }
 
     select() {
         this.selected = true;
         this.strokeStyle = SelectedStrokeStyle;
+        this.startLogging();
     }
 
     deselect() {
         this.selected = false;
         this.strokeStyle = DeselectedStrokeStyle;
+        this.stopLogging();
+    }
+
+    private startLogging() {
+        this.loggingTimer = setInterval(() => {
+            this.log();
+        }, 1000);
+    }
+
+    private stopLogging() {
+        clearInterval(this.loggingTimer);
+        this.loggingTimer = null;
+    }
+
+    private log() {
+        console.log('state: ' + WorkerState[this.state]);
+        console.log('destination: [' + this.destination.gameObject.coordinates.x + '; ' + this.destination.gameObject.coordinates.y + ']');
+        console.log('gathering timer: ' + this.gatheringTimer);
+        console.log('unloading timer: ' + this.unloadingTimer);
     }
 
     private pickUpResource() {

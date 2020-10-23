@@ -44,7 +44,7 @@ export default class Resource extends GameObject {
         return this.resources != 0;
     }
 
-    gatherResource() {
+    take() {
         this.radius -= RadiusLostPerResource;
         this.resources--;
     }

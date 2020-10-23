@@ -35,7 +35,7 @@ class Destination {
     }
 
     reached(): boolean {
-        return this.distanceRemaining == 0;
+        return this.distanceRemaining <= 0;
     }
 }
 

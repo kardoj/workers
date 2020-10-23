@@ -9,7 +9,7 @@ const Width = 800;
 const Height = 600;
 const TicksPerSecond = 60;
 const CommandCenters = 3;
-const Workers = 10;
+const Workers = 100;
 const Resources = 15;
 
 class Game {
