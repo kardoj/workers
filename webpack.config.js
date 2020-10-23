@@ -1,5 +1,4 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: './src/game.ts',
@@ -12,6 +11,10 @@ module.exports = {
         use: 'ts-loader',
         exclude: /node_modules/,
       },
+      { 
+        test: /\.(html)$/,
+        loader: "file?name=[path][name].[ext]&context=./dist"
+      },
     ],
   },
   resolve: {
@@ -20,10 +23,5 @@ module.exports = {
   output: {
     filename: 'script.js',
     path: path.resolve(__dirname, 'dist'),
-  },
-  plugins: [
-    new HtmlWebpackPlugin({
-      title: "Workers"
-    })
-  ]
+  }
 };

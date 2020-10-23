@@ -15,7 +15,7 @@ class Game {
     private readonly canvas: HTMLCanvasElement;
     private readonly timeBetweenTicks: number = 1000 / TicksPerSecond;
 
-    private gameLoop: NodeJS.Timeout;
+    private gameLoop: number;
 
     private drawContext: CanvasRenderingContext2D;
     private workers: Worker[] = [];
@@ -66,8 +66,4 @@ class Game {
     }
 }
 
-const canvas = document.createElement('canvas');
-canvas.setAttribute('id', 'canvas');
-document.body.prepend(canvas);
-
-new Game(canvas).start();
+new Game(<HTMLCanvasElement>document.getElementById('canvas')).start();
