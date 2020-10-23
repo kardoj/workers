@@ -3,6 +3,7 @@ import Resource from "./resource";
 import GameObject from "./game-object";
 import { Destination } from "../components/destination";
 import Building from "./building";
+import removeInterval from "../lib/interval";
 
 enum WorkerState {
     Idle = 0,
@@ -154,10 +155,9 @@ export default class Worker extends GameObject {
                 this.pickUpResource();
             } 
             
-            if (this.carriedResources == MaxCarriedResources || resource.isDepleted()) {
-                clearInterval(this.gatheringTimer);
-                this.gatheringTimer = undefined;
-            }
+            if (this.carriedResources == MaxCarriedResources || resource.isDepleted())
+                removeInterval(this.gatheringTimer)
+
         }, GatheringDelay);
     }
 
@@ -183,10 +183,9 @@ export default class Worker extends GameObject {
                 this.unloadResource();
             } 
             
-            if (this.carriedResources == 0) {
-                clearInterval(this.unloadingTimer);
-                this.unloadingTimer = undefined;
-            }
+            if (this.carriedResources == 0)
+                removeInterval(this.unloadingTimer);
+
         }, UnloadingDelay);
     }
 
@@ -197,8 +196,7 @@ export default class Worker extends GameObject {
     }
 
     private stopLogging() {
-        clearInterval(this.loggingTimer);
-        this.loggingTimer = undefined;
+        removeInterval(this.loggingTimer);
     }
 
     private log() {
