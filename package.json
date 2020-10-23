@@ -4,6 +4,7 @@
   "description": "",
   "private": true,
   "devDependencies": {
+    "html-webpack-plugin": "^4.5.0",
     "ts-loader": "^6.2.1",
     "typescript": "^3.7.5",
     "webpack": "^4.41.6",

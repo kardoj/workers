@@ -1,5 +1,4 @@
 import CanvasSetup from "./lib/canvas-setup";
-import Point from "./lib/point";
 import Worker from "./game-objects/worker";
 import Resource from "./game-objects/resource";
 import { getRandomPointFromArea } from "./lib/random";
@@ -16,7 +15,7 @@ class Game {
     private readonly canvas: HTMLCanvasElement;
     private readonly timeBetweenTicks: number = 1000 / TicksPerSecond;
 
-    private gameLoop: number;
+    private gameLoop: NodeJS.Timeout;
 
     private drawContext: CanvasRenderingContext2D;
     private workers: Worker[] = [];
@@ -67,4 +66,8 @@ class Game {
     }
 }
 
-new Game(<HTMLCanvasElement>document.getElementById('canvas')).start();
+const canvas = document.createElement('canvas');
+canvas.setAttribute('id', 'canvas');
+document.body.prepend(canvas);
+
+new Game(canvas).start();
