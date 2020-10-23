@@ -5,6 +5,7 @@ import { Destination } from "../components/destination";
 import Building from "./building";
 
 enum WorkerState {
+    Idle = 0,
     GoingToResource = 1,
     GatheringResources = 2,
     GoingToCommandCenter = 3,
@@ -56,8 +57,15 @@ export default class Worker extends GameObject {
         this.locateNearestResourceAndStartGoingThere();
     }
 
+    stopGaterhing() {
+        this.state = WorkerState.Idle;
+    }
+
     async update() {
         switch (this.state) {
+            case WorkerState.Idle:
+                break;
+
             case WorkerState.GoingToResource: {
                 if (this.destination.reached()) {
                     this.startHarvestingResource(<Resource>this.destination.gameObject);
@@ -79,7 +87,7 @@ export default class Worker extends GameObject {
 
             case WorkerState.GoingToCommandCenter: {
                 if (this.destination.reached()) {
-                    this.state = WorkerState.UnloadingResources;
+                    this.unloadResources((<Building>this.destination.gameObject));
                     break;
                 }
 
@@ -88,19 +96,7 @@ export default class Worker extends GameObject {
             }
 
             case WorkerState.UnloadingResources: {
-                if (!this.unloadingTimer) {
-                    this.unloadingTimer = setInterval(() => {
-                        if (this.carriedResources > 0) {
-                            (<Building>this.destination.gameObject).unloadResource();
-                            this.unloadResource();
-                        } 
-                        
-                        if (this.carriedResources == 0) {
-                            clearInterval(this.unloadingTimer);
-                        }
-                    }, UnloadingDelay);
-                } else if (this.carriedResources == 0) {
-                    this.unloadingTimer = null;
+                if (this.carriedResources == 0) {
                     this.locateNearestResourceAndStartGoingThere();
                 }
                 break;
@@ -156,16 +152,38 @@ export default class Worker extends GameObject {
             
             if (this.carriedResources == MaxCarriedResources || !resource.hasResources()) {
                 clearInterval(this.gatheringTimer);
+                this.gatheringTimer = undefined;
             }
         }, GatheringDelay);
     }
 
     private bringResourcesToNearestCommandCenter() {
-        this.gatheringTimer = null;
-        const nearestCommandCenterWithDistance = this.findNearestGameObjectWithDistance(this.commandCenters);
-        const commandCenter: Building = <Building>nearestCommandCenterWithDistance.gameObject;
+        clearTimeout(this.gatheringTimer);
+        this.gatheringTimer = undefined;
+        const nearestCommandCenterWithDistance = this.findNearestBuildingWithDistance(this.commandCenters);
+        const commandCenter: Building = nearestCommandCenterWithDistance.building;
+        if (commandCenter === undefined) {
+            this.stopGaterhing();
+            return;
+        }
         this.destination = new Destination(this.coordinates, commandCenter, nearestCommandCenterWithDistance.distance);
         this.state = WorkerState.GoingToCommandCenter;
+    }
+
+    private unloadResources(building: Building) {
+        this.state = WorkerState.UnloadingResources;
+
+        this.unloadingTimer = setInterval(() => {
+            if (this.carriedResources > 0) {
+                building.unloadResource();
+                this.unloadResource();
+            } 
+            
+            if (this.carriedResources == 0) {
+                clearInterval(this.unloadingTimer);
+                this.unloadingTimer = undefined;
+            }
+        }, UnloadingDelay);
     }
 
     private startLogging() {
@@ -176,7 +194,7 @@ export default class Worker extends GameObject {
 
     private stopLogging() {
         clearInterval(this.loggingTimer);
-        this.loggingTimer = null;
+        this.loggingTimer = undefined;
     }
 
     private log() {
@@ -196,6 +214,25 @@ export default class Worker extends GameObject {
         this.speed += SpeedLostByCarriedResource;
         this.radius -= RadiusGainedByCarriedResource;
         this.carriedResources--;
+    }
+
+    private findNearestBuildingWithDistance(buildings: Building[]): { building: Building, distance: number } {
+        if (buildings.length === 0) {
+            return { building: undefined, distance: undefined };
+        }
+
+        let nearestDistance = this.getDistance(buildings[0]);
+        let nearest = buildings[0];
+        
+        for (let i = 1; i < buildings.length; i++) {
+            let distance = this.getDistance(buildings[i]);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearest = buildings[i];
+            }
+        }
+
+        return { building: nearest, distance: nearestDistance };
     }
 
     private findNearestGameObjectWithDistance(gameObjects: GameObject[]): { gameObject: GameObject, distance: number } {
