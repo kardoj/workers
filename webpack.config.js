@@ -11,10 +11,6 @@ module.exports = {
         use: 'ts-loader',
         exclude: /node_modules/,
       },
-      { 
-        test: /\.(html)$/,
-        loader: "file?name=[path][name].[ext]&context=./dist"
-      },
     ],
   },
   resolve: {
