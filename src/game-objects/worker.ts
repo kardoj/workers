@@ -15,7 +15,8 @@ enum WorkerState {
 
 const Radius = 10;
 const RadiusGainedByCarriedResource = 1;
-const StrokeStyle = '#000';
+const SelectedStrokeStyle = '#29ce39';
+const DeselectedStrokeStyle = '#000';
 const MaxMovementSpeed = 3;
 const MaxCarriedResources = 4;
 const SpeedLostByCarriedResource = 0.5;
@@ -35,12 +36,14 @@ export default class Worker extends GameObject {
     private unloadingTimer: number;
     private speed: number = MaxMovementSpeed;
     private radius: number = Radius;
+    private strokeStyle = DeselectedStrokeStyle;
 
     // References to main game objects
     private resources: Resource[];
     private commandCenters: Building[];
 
     coordinates: Point;
+    selected: boolean = false;
 
     constructor(coordinates: Point) {
         super();
@@ -79,7 +82,7 @@ export default class Worker extends GameObject {
                     this.gatheringTimer = setInterval(() => {
                         if (this.carriedResources < MaxCarriedResources && resource.hasResources()) {
                             resource.gatherResource();
-                            this.carryResource();
+                            this.pickUpResource();
                         } 
                         
                         if (this.carriedResources == MaxCarriedResources || !resource.hasResources()) {
@@ -133,7 +136,7 @@ export default class Worker extends GameObject {
     }
 
     draw(context: CanvasRenderingContext2D) {
-        context.strokeStyle = StrokeStyle;
+        context.strokeStyle = this.strokeStyle;
         context.beginPath();
         context.arc(this.coordinates.x, this.coordinates.y, this.radius, 0, 2 * Math.PI);
         context.stroke();
@@ -145,7 +148,25 @@ export default class Worker extends GameObject {
         context.fillText(String(this.carriedResources), this.coordinates.x, this.coordinates.y);
     }
 
-    private carryResource() {
+    isAt(point: Point): boolean {
+        // Compare radius of circle with distance of its center from given point
+        if ((point.x - this.coordinates.x) * (point.x - this.coordinates.x) + (point.y - this.coordinates.y) * (point.y - this.coordinates.y) <= this.radius * this.radius)
+            return true; 
+        else
+            return false;
+    }
+
+    select() {
+        this.selected = true;
+        this.strokeStyle = SelectedStrokeStyle;
+    }
+
+    deselect() {
+        this.selected = false;
+        this.strokeStyle = DeselectedStrokeStyle;
+    }
+
+    private pickUpResource() {
         this.speed -= SpeedLostByCarriedResource;
         this.radius += RadiusGainedByCarriedResource;
         this.carriedResources++;

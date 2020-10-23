@@ -3,6 +3,7 @@ import Worker from "./game-objects/worker";
 import Resource from "./game-objects/resource";
 import { getRandomPointFromArea } from "./lib/random";
 import Building from "./game-objects/building";
+import Point from "./lib/point";
 
 const Width = 800;
 const Height = 600;
@@ -49,6 +50,15 @@ class Game {
         }, this.timeBetweenTicks);
 
         requestAnimationFrame(() => this.draw(this.drawContext));
+
+        this.canvas.addEventListener('click', (e: MouseEvent) => {
+            this.workers.forEach(w => w.deselect());
+
+            const point = new Point(e.offsetX, e.offsetY);
+            const selectedWorker = this.workers.find(w => w.isAt(point));
+            if (selectedWorker !== undefined)
+                selectedWorker.select();
+        });
     }
 
     update() {
